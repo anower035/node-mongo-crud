@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Mom look i have a mongo bd file!!!</h1>
+    <form action="/addProduct" method='post'>
+    <input type="text" placeholder='name' name="name"/>
+    <input type="text" placeholder='age' name="age"/>
+    <input type="text" placeholder='hobby' name="hobby"/>
+    <button type="submit">Add Product</button>
+    </form>
+    <div id="products">
+    </div>
+    <div id="update">
+    </div>
+    <script>
+        function addProducts() {
+            fetch('/products')
+            .then(res => res.json())
+            .then(products => {
+            console.log(products);
+            const container=document.getElementById('products');
+            container.innerHTML='';
+            products.forEach(pd => {
+                const p = document.createElement('p')
+                p.innerHTML = `<strong>${pd.name}</strong>-- Age: ${pd.age} Hobby: ${pd.hobby}
+                <button onclick="loadProduct('${pd._id}')">update</button>
+                <button onclick="deleteProduct(event,'${pd._id}')">delete</button>`;
+                container.appendChild(p)
+            })
+        })
+        }
+        addProducts();
+        function loadProduct(id){
+            fetch(`products/${id}`)
+            .then(res => res.json())
+            .then(data =>{
+                const update = document.getElementById('update');
+                update.innerHTML =` 
+                <h3>Update:${data._id}</h3>
+                Age : <input type="text" value="${data.age}" id="age">
+                <br/>
+                Hobby : <input type="text" value="${data.hobby}" id="hobby">
+                <br/>
+                <button onclick="updateProduct('${data._id}')">Submit</button>
+                `
+            })
+        }
+        function updateProduct(id) {
+            const age= document.getElementById('age').value
+            const hobby= document.getElementById('hobby').value
+            const product={id,age,hobby};
+            fetch(`/update/${id}`,{
+                method:'PATCH',
+                headers:{'Content-type': 'application/json'},
+                body: JSON.stringify(product)
+            })
+            .then(res => res.json())
+            .then(result =>{
+                if(result){
+                    addProducts();
+                    document.getElementById('update').innerHTML = '';
+                }
+            })
+        }
+        function deleteProduct(event,id){
+            fetch(`/delete/${id}`,{
+                method:'DELETE'
+            })
+            .then(res =>res.json())
+            .then(result =>{
+                if(result){
+                    event.target.parentNode.style.display="none";
+                }
+            })
+        }
+    </script>
+</body>
+</html>
